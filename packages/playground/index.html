@@ -3,14 +3,120 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Branchreel Playground</title>
+    <title>Branchreel — branching interactive video, no backend required</title>
+    <meta
+      name="description"
+      content="Branchreel is a small, framework-agnostic library for click-to-branch interactive video: drop in clips and a JSON graph, get seamless jump-cut playback and a live story graph."
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230b1220'/%3E%3Cpath d='M16 16v32M16 32h16a8 8 0 0 0 0-16H16' stroke='%234fd1ff' stroke-width='5' fill='none' stroke-linecap='round'/%3E%3Cpath d='M32 32h10l6 8' stroke='%23ffb454' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="./src/style.css" />
   </head>
   <body>
-    <main id="app">
-      <h1>Branchreel</h1>
-      <p id="status">loading…</p>
+    <header class="topbar">
+      <a class="wordmark" href="./" aria-label="Branchreel — home">
+        <svg class="wordmark__mark" viewBox="0 0 190 32" aria-hidden="true">
+          <text x="0" y="23" class="wordmark__text wordmark__text--cyan">branch</text>
+          <path class="wordmark__trace" d="M76 16 h8 q6 0 6 -6" />
+          <text x="98" y="23" class="wordmark__text wordmark__text--amber">reel</text>
+        </svg>
+      </a>
+      <button
+        id="mute-toggle"
+        class="icon-button"
+        type="button"
+        aria-label="Mute sound effects"
+        aria-pressed="false"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="icon-button__on">
+          <path
+            d="M4 9v6h4l5 5V4L8 9H4Z"
+            fill="currentColor"
+          /><path
+            d="M16.5 8.5a5 5 0 0 1 0 7"
+            stroke="currentColor"
+            stroke-width="1.6"
+            fill="none"
+            stroke-linecap="round"
+          />
+        </svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="icon-button__off">
+          <path d="M4 9v6h4l5 5V4L8 9H4Z" fill="currentColor" />
+          <path
+            d="M15.5 9.5l5 5m0-5l-5 5"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+          />
+        </svg>
+      </button>
+    </header>
+
+    <main id="app" class="stage">
+      <section class="player" aria-label="Story player">
+        <div class="player__frame">
+          <video id="video" class="player__video" playsinline></video>
+
+          <div id="choice-overlay" class="choice-overlay" hidden>
+            <p class="choice-overlay__prompt">Choose what happens next</p>
+            <div id="choice-list" class="choice-overlay__choices"></div>
+          </div>
+
+          <div id="end-overlay" class="end-overlay" hidden>
+            <p class="end-overlay__eyebrow">— end of this path —</p>
+            <p id="end-overlay__path" class="end-overlay__path"></p>
+            <button id="restart" class="button button--primary" type="button">
+              Play again
+            </button>
+          </div>
+        </div>
+
+        <div class="scrubber">
+          <input
+            id="scrubber"
+            class="scrubber__input"
+            type="range"
+            min="0"
+            max="1"
+            step="0.001"
+            value="0"
+            aria-label="Playback position within the current segment"
+          />
+          <span id="scrubber-time" class="scrubber__time">0:00 / 0:00</span>
+        </div>
+      </section>
+
+      <aside class="graph-panel" aria-label="Story graph">
+        <button
+          id="graph-toggle"
+          class="graph-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="graph-view-wrap"
+        >
+          Story graph <span class="graph-toggle__chevron" aria-hidden="true">▾</span>
+        </button>
+        <div id="graph-view-wrap" class="graph-view-wrap">
+          <svg
+            id="graph-view"
+            class="graph-view"
+            role="img"
+            aria-label="Diagram of the story's branches; the path you've taken is highlighted in amber"
+          ></svg>
+        </div>
+      </aside>
     </main>
+
+    <p id="status" class="sr-only" role="status" aria-live="polite"></p>
+
     <script type="module" src="./src/main.ts"></script>
   </body>
 </html>
