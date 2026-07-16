@@ -7,11 +7,11 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspaces --if-present",
+    "build": "npm run build --workspace=branchreel && npm run build --workspace=branchreel-playground",
     "test": "npm run test --workspaces --if-present",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "typecheck": "npm run build --workspace=branchreel && npm run typecheck --workspaces --if-present"
   },
   "devDependencies": {
-    "typescript": "^5.5.4"
+    "typescript": "^5.9.3"
   }
 }
