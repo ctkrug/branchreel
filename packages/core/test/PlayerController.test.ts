@@ -15,8 +15,12 @@ class FakeVideoHost extends EventTarget implements VideoHost {
   currentTime = 0;
   played = false;
   loadCalls = 0;
+  rejectPlay = false;
 
-  play(): void {
+  play(): void | Promise<void> {
+    if (this.rejectPlay) {
+      return Promise.reject(new Error("NotAllowedError"));
+    }
     this.played = true;
   }
 
@@ -186,6 +190,18 @@ describe("PlayerController", () => {
 
     expect(() => controller.choose("brave")).not.toThrow();
     expect(host.src).toBe("hallway.mp4");
+  });
+
+  it("swallows a rejected play() promise instead of an unhandled rejection", async () => {
+    const { host, controller } = makeController();
+    host.currentTime = 10;
+    host.fireEvent("timeupdate");
+    host.rejectPlay = true;
+
+    expect(() => controller.choose("brave")).not.toThrow();
+    // Let the rejected promise's microtask settle before the test ends.
+    await Promise.resolve();
+    await Promise.resolve();
   });
 
   it("dispose removes host listeners so further events are ignored", () => {
