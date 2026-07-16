@@ -1,11 +1,13 @@
 import type { BranchGraph } from "./types.js";
 
+/** A node's computed position in the graph view, in px. */
 export interface GraphLayoutNode {
   id: string;
   x: number;
   y: number;
 }
 
+/** A drawable edge for one choice, from its source node to its target. */
 export interface GraphLayoutEdge {
   from: string;
   to: string;
@@ -13,10 +15,13 @@ export interface GraphLayoutEdge {
   label: string;
 }
 
+/** The full computed layout: every node's position, every edge, and the overall canvas size. */
 export interface GraphLayout {
   nodes: GraphLayoutNode[];
   edges: GraphLayoutEdge[];
+  /** Total width needed to draw every column, in px. */
   width: number;
+  /** Total height needed to draw the tallest column, in px. */
   height: number;
 }
 

@@ -15,6 +15,7 @@ export interface VideoHost extends EventTarget {
   load?(): void;
 }
 
+/** Construction options for {@link PlayerController}. */
 export interface PlayerControllerOptions {
   /** Factory for hidden hosts used to warm the browser cache for choice targets. */
   createPreloadHost?: () => VideoHost;
