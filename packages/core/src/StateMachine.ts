@@ -15,12 +15,31 @@ export class BranchStateMachine {
       throw new Error("BranchStateMachine: graph has no nodes");
     }
 
-    this.nodesById = new Map(graph.nodes.map((node) => [node.id, node]));
+    this.nodesById = new Map();
+    for (const node of graph.nodes) {
+      if (this.nodesById.has(node.id)) {
+        throw new Error(
+          `BranchStateMachine: duplicate node id "${node.id}"`,
+        );
+      }
+      this.nodesById.set(node.id, node);
+    }
 
     if (!this.nodesById.has(graph.start)) {
       throw new Error(
         `BranchStateMachine: start node "${graph.start}" is not in the graph`,
       );
+    }
+
+    for (const node of graph.nodes) {
+      for (const choice of node.choices ?? []) {
+        if (!this.nodesById.has(choice.target)) {
+          throw new Error(
+            `BranchStateMachine: choice "${choice.id}" on node "${node.id}" ` +
+              `targets unknown node "${choice.target}"`,
+          );
+        }
+      }
     }
 
     this.currentId = graph.start;
@@ -59,12 +78,8 @@ export class BranchStateMachine {
       );
     }
 
-    const target = this.nodesById.get(choice.target);
-    if (!target) {
-      throw new Error(
-        `BranchStateMachine: choice "${choiceId}" targets unknown node "${choice.target}"`,
-      );
-    }
+    // Construction-time validation guarantees every choice target exists.
+    const target = this.nodesById.get(choice.target)!;
 
     this.currentId = target.id;
     this.path.push(target.id);
