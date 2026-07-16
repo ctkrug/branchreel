@@ -66,6 +66,16 @@ export class BranchStateMachine {
     return this.choices().length === 0;
   }
 
+  /** Looks up any node in the graph by id, regardless of traversal state. */
+  nodeById(id: string): BranchNode | undefined {
+    return this.nodesById.get(id);
+  }
+
+  /** Every node in the graph, in the order given at construction. */
+  allNodes(): BranchNode[] {
+    return [...this.nodesById.values()];
+  }
+
   /**
    * Follows the given choice and moves to its target node.
    * Throws if `choiceId` isn't offered by the current node.
