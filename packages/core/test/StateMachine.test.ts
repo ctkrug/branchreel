@@ -86,4 +86,20 @@ describe("BranchStateMachine", () => {
       /duplicate node id "intro"/,
     );
   });
+
+  it("looks up any node by id regardless of traversal position", () => {
+    const machine = new BranchStateMachine(makeGraph());
+    expect(machine.nodeById("ending-twist")?.src).toBe("ending-twist.mp4");
+    expect(machine.nodeById("missing")).toBeUndefined();
+  });
+
+  it("lists every node in the graph via allNodes", () => {
+    const machine = new BranchStateMachine(makeGraph());
+    expect(machine.allNodes().map((n) => n.id)).toEqual([
+      "intro",
+      "hallway",
+      "ending-safe",
+      "ending-twist",
+    ]);
+  });
 });
