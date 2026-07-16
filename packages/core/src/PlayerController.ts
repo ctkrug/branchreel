@@ -91,7 +91,7 @@ export class PlayerController extends EventTarget {
 
     this.host.src = target.src;
     this.host.currentTime = target.start ?? 0;
-    this.host.play();
+    this.safePlay();
 
     this.dispatchEvent(
       new CustomEvent("branch", {
@@ -117,8 +117,22 @@ export class PlayerController extends EventTarget {
     const node = this.machine.current;
     this.host.src = node.src;
     this.host.currentTime = node.start ?? 0;
-    if (autoplay) this.host.play();
+    if (autoplay) this.safePlay();
     this.preloadChoiceTargets(node);
+  }
+
+  /**
+   * `HTMLMediaElement.play()` returns a promise that rejects when the
+   * browser's autoplay policy blocks it (e.g. no user gesture yet). That
+   * rejection is an expected, non-actionable outcome here — the viewer
+   * simply hasn't interacted yet — so it's swallowed rather than left as
+   * an unhandled rejection.
+   */
+  private safePlay(): void {
+    const result = this.host.play();
+    if (result && typeof (result as Promise<void>).catch === "function") {
+      (result as Promise<void>).catch(() => {});
+    }
   }
 
   private preloadChoiceTargets(node: BranchNode): void {
