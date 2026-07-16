@@ -70,4 +70,20 @@ describe("BranchStateMachine", () => {
       /no nodes/,
     );
   });
+
+  it("throws at construction when a choice targets a nonexistent node", () => {
+    const graph = makeGraph();
+    graph.nodes[0].choices![0].target = "missing";
+    expect(() => new BranchStateMachine(graph)).toThrow(
+      /choice "brave" on node "intro" targets unknown node "missing"/,
+    );
+  });
+
+  it("throws at construction on duplicate node ids", () => {
+    const graph = makeGraph();
+    graph.nodes.push({ id: "intro", src: "duplicate.mp4" });
+    expect(() => new BranchStateMachine(graph)).toThrow(
+      /duplicate node id "intro"/,
+    );
+  });
 });
