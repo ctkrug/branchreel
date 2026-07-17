@@ -76,6 +76,14 @@ describe("PlayerController", () => {
     expect(controller.current.id).toBe("intro");
   });
 
+  it("exposes the current node's choices, empty for a terminal node", () => {
+    const { controller } = makeController();
+    expect(controller.choices.map((c) => c.id)).toEqual(["brave", "cautious"]);
+
+    controller.choose("brave");
+    expect(controller.choices).toEqual([]);
+  });
+
   it("preloads every choice target as soon as the node starts", () => {
     const { preloadHosts } = makeController();
     expect(preloadHosts.map((h) => h.src).sort()).toEqual([
