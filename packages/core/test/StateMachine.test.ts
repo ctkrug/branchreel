@@ -141,4 +141,50 @@ describe("BranchStateMachine", () => {
     expect(machine.current.id).toBe("intro");
     expect(machine.history).toEqual(["intro"]);
   });
+
+  // Simple deterministic LCG so property runs are reproducible across CI runs.
+  function makeRng(seed: number): () => number {
+    let state = seed;
+    return () => {
+      state = (state * 1103515245 + 12345) & 0x7fffffff;
+      return state / 0x7fffffff;
+    };
+  }
+
+  function randomDag(rng: () => number, nodeCount: number): BranchGraph {
+    const nodes = Array.from({ length: nodeCount }, (_, i) => ({
+      id: `n${i}`,
+      src: `n${i}.mp4`,
+      choices: [] as { id: string; label: string; target: string }[],
+    }));
+    for (let i = 0; i < nodeCount - 1; i++) {
+      const edgeCount = 1 + Math.floor(rng() * 2);
+      for (let e = 0; e < edgeCount; e++) {
+        const targetIndex = i + 1 + Math.floor(rng() * (nodeCount - i - 1));
+        const choiceId = `c${i}-${targetIndex}-${e}`;
+        if (nodes[i].choices.some((c) => c.target === `n${targetIndex}`)) continue;
+        nodes[i].choices.push({ id: choiceId, label: choiceId, target: `n${targetIndex}` });
+      }
+    }
+    return { start: "n0", nodes };
+  }
+
+  it("property: history always matches a real path through random walks", () => {
+    const rng = makeRng(7);
+    for (let trial = 0; trial < 50; trial++) {
+      const graph = randomDag(rng, 3 + Math.floor(rng() * 10));
+      const machine = new BranchStateMachine(graph);
+
+      let steps = 0;
+      while (!machine.isTerminal() && steps < 20) {
+        const choices = machine.choices();
+        const choice = choices[Math.floor(rng() * choices.length)];
+        machine.choose(choice.id);
+        steps += 1;
+
+        expect(machine.history.length).toBe(steps + 1);
+        expect(machine.history[machine.history.length - 1]).toBe(machine.current.id);
+      }
+    }
+  });
 });
