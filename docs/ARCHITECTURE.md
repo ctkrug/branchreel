@@ -20,9 +20,11 @@ packages/
     src/
       story.ts             the sample story ("The Signal") + its placeholder video imports
       media/                ffmpeg-generated placeholder clips + regeneration instructions
-      main.ts               DOM wiring: player, overlays, scrubber, mute toggle
-      graph-view.ts          SVG rendering of computeGraphLayout + path highlighting
+      main.ts               DOM wiring: player, overlays, scrubber, mute toggle (untested glue,
+                             see "What's intentionally untested" below)
+      graph-view.ts          SVG rendering of computeGraphLayout + path highlighting (tested)
       audio.ts               SoundEngine — synthesized WebAudio SFX + persisted mute state
+                             (tested against a fake AudioContext)
       format.ts               pure scrubber/time-formatting helpers (tested)
       style.css                docs/DESIGN.md tokens + layout, implemented
     index.html               page shell
@@ -63,6 +65,17 @@ currentTime, play/pause/load, EventTarget) instead of `HTMLVideoElement` means t
 sequence — node loads, preload, timeupdate-triggers-choice, jump-cut, dispose — is unit-tested
 in plain Node against a fake host, with no jsdom/browser media stack needed in CI.
 
+## What's intentionally untested
+
+`main.ts` is DOM-wiring glue (queries fixed `index.html` elements, binds them to the modules
+above) rather than logic — every function it calls into (`PlayerController`, `GraphView`,
+`SoundEngine`, `format.ts`) is independently covered, so `main.ts` itself is exercised by manual/
+visual QA instead of a unit suite. `graph-view.ts` runs its tests under
+`// @vitest-environment jsdom` (opt-in per file — the rest of the playground suite stays in the
+default Node environment) since it builds real SVG DOM nodes; jsdom models every SVG element as
+the generic `SVGElement` (no `SVGPathElement`), so the reduced-motion branch of
+`animateTraceDraw` is tested by stubbing `SVGElement.prototype.getTotalLength`.
+
 ## Running it
 
 ```sh
@@ -72,6 +85,9 @@ npm run test                                      # vitest for both packages
 npm run --workspace=branchreel-playground dev      # live playground
 npm run --workspace=branchreel-playground build    # static dist/, relative asset paths
 ```
+
+Each workspace also has `npm run test:coverage` (vitest + `@vitest/coverage-v8`) for an honest
+line-coverage number instead of eyeballing it.
 
 The playground build is base-path-relative (`base: "./"` in `vite.config.ts`) so `dist/` can be
 served from any subpath.
