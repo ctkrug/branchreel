@@ -2,9 +2,24 @@ import { computeGraphLayout } from "branchreel";
 import type { BranchGraph, GraphLayoutNode } from "branchreel";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
-const NODE_WIDTH = 140;
-const NODE_HEIGHT = 44;
-const PADDING = 24;
+const NODE_WIDTH = 104;
+const NODE_HEIGHT = 34;
+const PADDING = 14;
+/** Distance between depth levels, running down the panel. */
+const DEPTH_SPACING = NODE_HEIGHT + 84;
+/** Distance between siblings at the same depth, running across it. */
+const SIBLING_SPACING = NODE_WIDTH + 12;
+
+/** A node's drawing position, in viewBox units. */
+interface Point {
+  x: number;
+  y: number;
+}
+
+/** Swaps a layout node's axes so depth reads downward, and insets it by the padding. */
+function transpose(node: GraphLayoutNode): Point {
+  return { x: node.y + PADDING, y: node.x + PADDING };
+}
 
 function prefersReducedMotion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -55,22 +70,25 @@ export class GraphView {
 
   private render(graph: BranchGraph): void {
     const layout = computeGraphLayout(graph, {
-      columnSpacing: NODE_WIDTH + 70,
-      rowSpacing: NODE_HEIGHT + 32,
+      columnSpacing: DEPTH_SPACING,
+      rowSpacing: SIBLING_SPACING,
     });
-    const viewWidth = layout.width + PADDING * 2;
-    const viewHeight = Math.max(layout.height, NODE_HEIGHT) + PADDING * 2;
+    // computeGraphLayout runs depth along x and siblings along y. The panel
+    // is portrait, so the diagram is transposed to flow depth downward and
+    // its extents swap with it.
+    const viewWidth = Math.max(layout.height, SIBLING_SPACING) + PADDING * 2;
+    const viewHeight = Math.max(layout.width, DEPTH_SPACING) + PADDING * 2;
     this.svg.setAttribute("viewBox", `0 0 ${viewWidth} ${viewHeight}`);
     this.svg.innerHTML = "";
     this.svg.appendChild(this.buildDefs());
 
-    const positionOf = new Map(layout.nodes.map((n) => [n.id, n]));
+    const centerOf = new Map(layout.nodes.map((n) => [n.id, transpose(n)]));
 
     const edgeLayer = document.createElementNS(SVG_NS, "g");
     edgeLayer.setAttribute("class", "graph-view__edges");
     for (const edge of layout.edges) {
-      const from = positionOf.get(edge.from);
-      const to = positionOf.get(edge.to);
+      const from = centerOf.get(edge.from);
+      const to = centerOf.get(edge.to);
       if (!from || !to) continue;
       const path = this.drawEdge(from, to);
       edgeLayer.appendChild(path);
@@ -81,7 +99,7 @@ export class GraphView {
     const nodeLayer = document.createElementNS(SVG_NS, "g");
     nodeLayer.setAttribute("class", "graph-view__nodes");
     for (const node of layout.nodes) {
-      const el = this.drawNode(node);
+      const el = this.drawNode(node.id, centerOf.get(node.id)!);
       nodeLayer.appendChild(el);
       this.nodeEls.set(node.id, el);
     }
@@ -101,23 +119,22 @@ export class GraphView {
     return defs as unknown as SVGDefsElement;
   }
 
-  private drawEdge(from: GraphLayoutNode, to: GraphLayoutNode): SVGPathElement {
-    const x1 = from.x + NODE_WIDTH / 2 + PADDING;
-    const y1 = from.y + PADDING;
-    const x2 = to.x - NODE_WIDTH / 2 + PADDING;
-    const y2 = to.y + PADDING;
-    const midX = (x1 + x2) / 2;
+  /** Draws a choice as a vertical S-curve from the source's foot to the target's head. */
+  private drawEdge(from: Point, to: Point): SVGPathElement {
+    const y1 = from.y + NODE_HEIGHT / 2;
+    const y2 = to.y - NODE_HEIGHT / 2;
+    const midY = (y1 + y2) / 2;
 
     const path = document.createElementNS(SVG_NS, "path");
-    path.setAttribute("d", `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`);
+    path.setAttribute("d", `M ${from.x} ${y1} C ${from.x} ${midY}, ${to.x} ${midY}, ${to.x} ${y2}`);
     path.setAttribute("class", "graph-view__edge");
     path.setAttribute("marker-end", "url(#branchreel-arrow)");
     path.setAttribute("fill", "none");
     return path;
   }
 
-  private drawNode(node: GraphLayoutNode): SVGGElement {
-    const isTerminal = this.terminalIds.has(node.id);
+  private drawNode(id: string, center: Point): SVGGElement {
+    const isTerminal = this.terminalIds.has(id);
     const g = document.createElementNS(SVG_NS, "g");
     g.setAttribute(
       "class",
@@ -125,7 +142,7 @@ export class GraphView {
     );
     g.setAttribute(
       "transform",
-      `translate(${node.x - NODE_WIDTH / 2 + PADDING}, ${node.y - NODE_HEIGHT / 2 + PADDING})`,
+      `translate(${center.x - NODE_WIDTH / 2}, ${center.y - NODE_HEIGHT / 2})`,
     );
 
     const rect = document.createElementNS(SVG_NS, "rect");
@@ -140,7 +157,7 @@ export class GraphView {
     text.setAttribute("y", String(NODE_HEIGHT / 2 + 4));
     text.setAttribute("text-anchor", "middle");
     text.setAttribute("class", "graph-view__node-label");
-    text.textContent = node.id;
+    text.textContent = id;
     g.appendChild(text);
 
     return g;
