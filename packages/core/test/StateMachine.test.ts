@@ -102,4 +102,29 @@ describe("BranchStateMachine", () => {
       "ending-twist",
     ]);
   });
+
+  it("reset returns to the start node and clears history", () => {
+    const machine = new BranchStateMachine(makeGraph());
+    machine.choose("brave");
+    machine.choose("onward");
+    machine.reset();
+    expect(machine.current.id).toBe("intro");
+    expect(machine.history).toEqual(["intro"]);
+  });
+
+  it("supports choosing again immediately after reset", () => {
+    const machine = new BranchStateMachine(makeGraph());
+    machine.choose("brave");
+    machine.reset();
+    const next = machine.choose("cautious");
+    expect(next.id).toBe("ending-safe");
+    expect(machine.history).toEqual(["intro", "ending-safe"]);
+  });
+
+  it("reset on a freshly-constructed machine is a no-op", () => {
+    const machine = new BranchStateMachine(makeGraph());
+    machine.reset();
+    expect(machine.current.id).toBe("intro");
+    expect(machine.history).toEqual(["intro"]);
+  });
 });
