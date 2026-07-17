@@ -204,6 +204,53 @@ describe("PlayerController", () => {
     await Promise.resolve();
   });
 
+  it("reset returns to the start node and reloads its src", () => {
+    const { host, controller } = makeController();
+    host.currentTime = 10;
+    host.fireEvent("timeupdate");
+    controller.choose("brave");
+    expect(host.src).toBe("hallway.mp4");
+
+    controller.reset();
+
+    expect(controller.current.id).toBe("intro");
+    expect(controller.history).toEqual(["intro"]);
+    expect(host.src).toBe("intro.mp4");
+    expect(host.played).toBe(false);
+  });
+
+  it("reset plays immediately when passed autoplay", () => {
+    const { host, controller } = makeController();
+    controller.reset(true);
+    expect(host.played).toBe(true);
+  });
+
+  it("reset releases stale preload hosts and preloads the start node's targets again", () => {
+    const { host, controller, preloadHosts } = makeController();
+    host.currentTime = 10;
+    host.fireEvent("timeupdate");
+    controller.choose("brave");
+    const preloadCountAfterBranch = preloadHosts.length;
+
+    controller.reset();
+
+    expect(preloadHosts.length).toBeGreaterThan(preloadCountAfterBranch);
+    const latest = preloadHosts.slice(preloadCountAfterBranch);
+    expect(latest.map((h) => h.src).sort()).toEqual(["ending-safe.mp4", "hallway.mp4"]);
+  });
+
+  it("reset still emits a choice event once the reset node's end timecode is reached", () => {
+    const { host, controller } = makeController();
+    controller.reset();
+
+    const onChoice = vi.fn();
+    controller.addEventListener("choice", onChoice);
+    host.currentTime = 10;
+    host.fireEvent("timeupdate");
+
+    expect(onChoice).toHaveBeenCalledTimes(1);
+  });
+
   it("dispose removes host listeners so further events are ignored", () => {
     const { host, controller } = makeController();
     const onChoice = vi.fn();
