@@ -90,12 +90,15 @@ tactile:
   choice registered, independent of video load time.
 - **Node-arrival pulse:** the graph node you just landed on gets a brief (200ms) glow pulse.
 - **Synth SFX (WebAudio, generated in code, zero binary assets):**
-  - *hover* — a very quiet 40ms sine blip (~880Hz) on choice-button hover.
-  - *choice* — a short two-tone confirm (~660Hz → 990Hz, 80ms) on click.
-  - *branch-lit* — a soft rising sweep (400ms) synced with the graph trace-draw.
-  - *story-end* — a small resolving chord (three oscillators, 300ms) when a terminal node is
+  - *hover* — a very quiet 30ms sine blip (660Hz) on choice-button hover.
+  - *choice* — a brighter 60ms triangle tick (880Hz) on click.
+  - *branch-lit* — a soft 150ms sweep (440Hz → 880Hz) that runs with the graph trace-draw, so
+    the two land together.
+  - *story-end* — a small resolving triad (440/554/660Hz, 400ms) when a terminal node is
     reached.
-  - All SFX gain-staged quiet (peak ≈ -18dB) and rate-throttled (no retrigger within 60ms).
+  - All SFX gain-staged quiet (peak ≈ -18dB) and rate-throttled so a single sound cannot
+    retrigger itself within 60ms. The throttle is **per sound**: committing a choice fires
+    *choice* and *branch-lit* in the same tick by design, and both are meant to be heard.
   - A mute toggle (speaker icon, top-right of the player) persists to `localStorage` and the
     `AudioContext` is created lazily on first user gesture per browser autoplay policy.
 - Respect `prefers-reduced-motion`: keep the trace-draw and pulses functional but drop any
