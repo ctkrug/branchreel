@@ -80,6 +80,10 @@ player.addEventListener("end", (event) => {
 so `choose()` never stalls on a network request — if a preload fails, it silently falls back to
 a normal load instead of throwing.
 
+Call `player.reset()` to return to the graph's start node and clear history — useful for a
+"play again" button. It reuses the same host and listeners, so you don't need to reconstruct
+the controller; pass `true` to start playing immediately (`player.reset(true)`).
+
 ### Rendering the story graph
 
 `computeGraphLayout` turns a `BranchGraph` into node positions and edges you can draw yourself
