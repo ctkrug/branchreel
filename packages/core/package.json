@@ -1,7 +1,7 @@
 {
   "name": "branchreel",
-  "version": "0.1.0",
-  "description": "Drop-in library for branching interactive video: a state machine plus a <video> element, no proprietary format or backend required",
+  "version": "1.0.0",
+  "description": "Branching video on a page you control: drop in your clips and a JSON graph for click-to-branch playback. No platform, no backend.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.cjs",
