@@ -77,6 +77,19 @@ body {
   padding: var(--space-2) var(--space-3);
 }
 
+.wordmark-heading {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: 0;
+}
+
+.topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
 .wordmark {
   display: inline-flex;
   text-decoration: none;
@@ -165,6 +178,31 @@ body {
 .button--primary:hover {
   background: #7adfff;
   box-shadow: var(--glow-cyan);
+}
+
+/* Anchors styled as buttons need the same box as <button>. */
+a.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.button--ghost {
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-display);
+  padding: 0 var(--space-2);
+}
+
+.button--ghost:hover {
+  color: var(--accent);
+  background: var(--surface-1);
+}
+
+.button--large {
+  font-size: 16px;
+  padding: var(--space-2) var(--space-4);
 }
 
 .icon-button {
@@ -504,6 +542,162 @@ body {
   opacity: 1;
 }
 
+/* Below the fold: what this is, for anyone who scrolled past the demo */
+
+.prose {
+  max-width: 68ch;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-3) 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.prose__block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.prose__heading {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+  padding-bottom: var(--space-1);
+  border-bottom: 1px solid var(--surface-2);
+}
+
+.prose p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+.prose code {
+  font-family: var(--font-display);
+  font-size: 0.9em;
+  color: var(--accent);
+}
+
+/* Anything but the buttons, whose own colours must survive this rule. */
+.prose a:not(.button) {
+  color: var(--accent);
+}
+
+/* Spec rows, not feature cards: a schematic reads as a spec sheet. */
+.specs {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.specs__row {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: var(--space-2);
+  padding: var(--space-2);
+  background: var(--surface-1);
+  border: 1px solid var(--surface-2);
+  border-left: 2px solid var(--accent);
+  border-radius: var(--radius);
+  transition: border-left-color var(--ease-ui), transform var(--ease-ui), box-shadow var(--ease-ui);
+}
+
+.specs__row:hover {
+  border-left-color: var(--accent-support);
+  transform: translateX(2px);
+  box-shadow: var(--shadow);
+}
+
+.specs__term {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.specs__def {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.code {
+  margin: 0;
+  padding: var(--space-2);
+  background: var(--surface-1);
+  border: 1px solid var(--surface-2);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.code code {
+  color: var(--text);
+}
+
+.faq {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.faq__q {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--accent);
+  margin: var(--space-2) 0 0;
+}
+
+.faq__a {
+  margin: 0;
+}
+
+.prose__block--cta {
+  align-items: center;
+  text-align: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-3);
+  background: var(--surface-1);
+  border: 1px solid var(--surface-2);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.cta__line {
+  font-family: var(--font-display);
+  font-size: 14px;
+}
+
+.site-footer {
+  margin-top: var(--space-6);
+  padding: var(--space-3);
+  border-top: 1px solid var(--surface-2);
+  text-align: center;
+}
+
+.site-footer p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.site-footer a {
+  color: var(--text-muted);
+  text-decoration-color: var(--surface-2);
+  transition: color var(--ease-ui);
+}
+
+.site-footer a:hover {
+  color: var(--accent);
+}
+
 /* Responsive: phone (design intent width 390) and tablet (768) */
 
 @media (max-width: 900px) {
@@ -562,6 +756,17 @@ body {
 @media (max-width: 480px) {
   .stage {
     padding: 0 var(--space-2) var(--space-3);
+  }
+
+  .prose {
+    padding: var(--space-4) var(--space-2) 0;
+    gap: var(--space-4);
+  }
+
+  /* Term over definition: 200px of label plus prose does not fit a phone. */
+  .specs__row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
   }
 
   .choice-overlay__choices {

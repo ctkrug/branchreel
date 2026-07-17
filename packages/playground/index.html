@@ -3,11 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Branchreel — branching interactive video, no backend required</title>
+    <title>Branchreel — Branching video on a page you control</title>
     <meta
       name="description"
-      content="Branchreel is a small, framework-agnostic library for click-to-branch interactive video: drop in clips and a JSON graph, get seamless jump-cut playback and a live story graph."
+      content="A small JavaScript library for branching interactive video: drop in your clips and a JSON graph for click-to-branch playback. No platform, no backend."
     />
+    <meta property="og:title" content="Branchreel — Branching video on a page you control" />
+    <meta
+      property="og:description"
+      content="A small JavaScript library for branching interactive video: drop in your clips and a JSON graph for click-to-branch playback. No platform, no backend."
+    />
+    <meta property="og:type" content="website" />
     <link
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230b1220'/%3E%3Cpath d='M16 16v32M16 32h16a8 8 0 0 0 0-16H16' stroke='%234fd1ff' stroke-width='5' fill='none' stroke-linecap='round'/%3E%3Cpath d='M32 32h10l6 8' stroke='%23ffb454' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"
@@ -22,14 +28,24 @@
   </head>
   <body>
     <header class="topbar">
-      <a class="wordmark" href="./" aria-label="Branchreel — home">
-        <svg class="wordmark__mark" viewBox="0 0 190 32" aria-hidden="true">
-          <text x="0" y="23" class="wordmark__text wordmark__text--cyan">branch</text>
-          <path class="wordmark__trace" d="M76 16 h8 q6 0 6 -6" />
-          <text x="98" y="23" class="wordmark__text wordmark__text--amber">reel</text>
-        </svg>
-      </a>
-      <button
+      <h1 class="wordmark-heading">
+        <a class="wordmark" href="./">
+          <svg class="wordmark__mark" viewBox="0 0 190 32" aria-hidden="true">
+            <text x="0" y="23" class="wordmark__text wordmark__text--cyan">branch</text>
+            <path class="wordmark__trace" d="M76 16 h8 q6 0 6 -6" />
+            <text x="98" y="23" class="wordmark__text wordmark__text--amber">reel</text>
+          </svg>
+          <span class="sr-only">Branchreel: branching video on a page you control</span>
+        </a>
+      </h1>
+      <div class="topbar__actions">
+        <a
+          class="button button--ghost"
+          href="https://github.com/ctkrug/branchreel"
+          rel="noopener"
+          >GitHub</a
+        >
+        <button
         id="mute-toggle"
         class="icon-button"
         type="button"
@@ -57,7 +73,8 @@
             stroke-linecap="round"
           />
         </svg>
-      </button>
+        </button>
+      </div>
     </header>
 
     <main id="app" class="stage">
@@ -67,7 +84,7 @@
 
           <div id="start-overlay" class="start-overlay">
             <p class="start-overlay__eyebrow">a branchreel demo story</p>
-            <h1 class="start-overlay__title">The Signal</h1>
+            <h2 class="start-overlay__title">The Signal</h2>
             <p class="start-overlay__blurb">
               Three branch points, four endings. Watch the story graph light up as you choose.
             </p>
@@ -80,7 +97,7 @@
           </div>
 
           <div id="end-overlay" class="end-overlay" hidden>
-            <p class="end-overlay__eyebrow">— end of this path —</p>
+            <p class="end-overlay__eyebrow">end of this path</p>
             <p id="end-overlay__path" class="end-overlay__path"></p>
             <button id="restart" class="button button--primary" type="button">
               Play again
@@ -125,6 +142,139 @@
     </main>
 
     <p id="status" class="sr-only" role="status" aria-live="polite"></p>
+
+    <div class="prose">
+      <section class="prose__block">
+        <h2 class="prose__heading">What Branchreel does</h2>
+        <p>
+          Branchreel is a JavaScript library for branching interactive video. You describe a
+          story as a JSON graph, where every node is a video segment and every choice is an edge
+          to another node, and Branchreel drives an ordinary HTML
+          <code>&lt;video&gt;</code> element through it. When playback reaches a branch point the
+          player raises a choice event; when the viewer picks one, it cuts straight to that
+          segment. The demo above is the whole library doing its job: three branch points, four
+          endings, eight clips, and the panel beside it drawing the shape of the story as you go.
+        </p>
+        <p>
+          It exists because interactive video normally means picking between two trades you may
+          not want to make. Hosted platforms take your story into their editor, their file
+          format, and their player, on their pricing. Rolling your own means writing source
+          swapping, preloading, choice overlays, and a branch-aware scrubber from scratch, once
+          per project. Branchreel is the small third option: a dependency you add to a page you
+          already own.
+        </p>
+      </section>
+
+      <section class="prose__block">
+        <h2 class="prose__heading">What you get</h2>
+        <dl class="specs">
+          <div class="specs__row">
+            <dt class="specs__term">Cuts that do not stall</dt>
+            <dd class="specs__def">
+              Every choice target starts preloading the moment its node begins playing, and
+              <code>choose()</code> sets the video's <code>src</code> synchronously. Nothing is
+              awaited between the click and the new frame.
+            </dd>
+          </div>
+          <div class="specs__row">
+            <dt class="specs__term">Plain JSON, no authoring tool</dt>
+            <dd class="specs__def">
+              A graph is an array of nodes, each with a <code>src</code> and a list of choices.
+              Write one by hand in a text editor, or generate it from whatever you already use.
+            </dd>
+          </div>
+          <div class="specs__row">
+            <dt class="specs__term">Graphs that fail loudly</dt>
+            <dd class="specs__def">
+              A duplicate node id, or a choice pointing at a node that is not in the graph,
+              throws when you build the machine rather than three clicks into a playthrough.
+            </dd>
+          </div>
+          <div class="specs__row">
+            <dt class="specs__term">A story graph you can draw</dt>
+            <dd class="specs__def">
+              <code>computeGraphLayout</code> returns node positions and edges. The panel above is
+              SVG built from it; the library has no opinion about what you render.
+            </dd>
+          </div>
+          <div class="specs__row">
+            <dt class="specs__term">Nothing at runtime</dt>
+            <dd class="specs__def">
+              Zero runtime dependencies, ESM and CJS builds, and TypeScript types in the package.
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="prose__block">
+        <h2 class="prose__heading">Install</h2>
+        <pre class="code"><code>npm install branchreel</code></pre>
+        <pre class="code"><code>import { PlayerController } from "branchreel";
+
+const player = new PlayerController(document.querySelector("video"), {
+  start: "intro",
+  nodes: [
+    { id: "intro", src: "intro.mp4", end: 8, choices: [
+      { id: "brave", label: "Open the door", target: "hallway" },
+    ]},
+    { id: "hallway", src: "hallway.mp4" },
+  ],
+});
+
+player.addEventListener("choice", (e) =&gt; {
+  // render e.detail.choices as buttons, each calling player.choose(id)
+});</code></pre>
+      </section>
+
+      <section class="prose__block">
+        <h2 class="prose__heading">Questions</h2>
+        <div class="faq">
+          <h3 class="faq__q">Does Branchreel need a backend?</h3>
+          <p class="faq__a">
+            No. The current node and the path taken live in memory in the browser, so there is
+            nothing to deploy beyond the page and the video files. If you want to persist a
+            viewer's path or report on it, that stays your call to make in your own app.
+          </p>
+
+          <h3 class="faq__q">What video format does it use?</h3>
+          <p class="faq__a">
+            Whatever a <code>&lt;video&gt;</code> element already plays. Branchreel never touches
+            the media itself: it sets <code>src</code> and <code>currentTime</code> and listens
+            for <code>timeupdate</code>. Segments can be separate files, or spans of one longer
+            file addressed with <code>start</code> and <code>end</code> timecodes.
+          </p>
+
+          <h3 class="faq__q">Can I use it with React, Vue, or Svelte?</h3>
+          <p class="faq__a">
+            Yes. The library is framework-agnostic and talks to a <code>&lt;video&gt;</code>-shaped
+            host through ordinary events. Render the choice buttons however your framework
+            prefers and call <code>choose(id)</code> when one is clicked.
+          </p>
+
+          <h3 class="faq__q">How does it keep a branch from buffering?</h3>
+          <p class="faq__a">
+            Every choice from a node points at a known target, so the moment a node starts
+            playing, each of its targets begins loading in a hidden host. By the time the viewer
+            decides, the next segment is usually already in the browser's cache. If a preload
+            fails, choosing that branch still works through a normal load.
+          </p>
+        </div>
+      </section>
+
+      <section class="prose__block prose__block--cta">
+        <p class="cta__line">Read the source, or copy the demo and swap in your own footage.</p>
+        <a class="button button--primary button--large" href="https://github.com/ctkrug/branchreel" rel="noopener">
+          View on GitHub
+        </a>
+      </section>
+    </div>
+
+    <footer class="site-footer">
+      <p>
+        More by Charlie Krug:
+        <a href="https://apps.charliekrug.com">apps.charliekrug.com</a>
+      </p>
+    </footer>
 
     <script type="module" src="./src/main.ts"></script>
   </body>
