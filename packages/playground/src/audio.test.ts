@@ -125,6 +125,34 @@ describe("SoundEngine", () => {
       expect(ctx.createOscillator).not.toHaveBeenCalled();
     });
 
+    it("does not retrigger a new oscillator within 60ms of the previous SFX", () => {
+      vi.useFakeTimers();
+      try {
+        const { oscillators } = stubWindowWithAudioContext();
+        const engine = new SoundEngine();
+        engine.hover();
+        vi.advanceTimersByTime(30);
+        engine.choice();
+        expect(oscillators).toHaveLength(1);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("allows a new SFX once the 60ms throttle window has elapsed", () => {
+      vi.useFakeTimers();
+      try {
+        const { oscillators } = stubWindowWithAudioContext();
+        const engine = new SoundEngine();
+        engine.hover();
+        vi.advanceTimersByTime(61);
+        engine.choice();
+        expect(oscillators).toHaveLength(2);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
     it("hover plays a single quiet high tick", () => {
       const { oscillators } = stubWindowWithAudioContext();
       new SoundEngine().hover();
