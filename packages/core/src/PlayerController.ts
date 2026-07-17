@@ -104,6 +104,21 @@ export class PlayerController extends EventTarget {
     return target;
   }
 
+  /**
+   * Returns playback to the graph's start node and clears history,
+   * without tearing down host listeners. Existing preload hosts are
+   * released and the start node's choice targets begin preloading again.
+   */
+  reset(autoplay = false): void {
+    this.awaitingChoice = false;
+    for (const preloadHost of this.preloaded.values()) {
+      preloadHost.pause();
+    }
+    this.preloaded.clear();
+    this.machine.reset();
+    this.loadCurrentNode(autoplay);
+  }
+
   /** Removes host listeners and releases preload hosts. */
   dispose(): void {
     this.host.removeEventListener("timeupdate", this.onTimeUpdate);
