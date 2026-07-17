@@ -30,13 +30,14 @@ export function segmentProgress(
   start: number,
   end: number,
 ): number {
-  if (end <= start) return 0;
+  if (end <= start || !Number.isFinite(currentTime)) return 0;
   const clamped = Math.min(Math.max(currentTime, start), end);
   return (clamped - start) / (end - start);
 }
 
 /** Inverse of {@link segmentProgress}: maps a 0–1 fraction back to a time. */
 export function segmentTimeAt(fraction: number, start: number, end: number): number {
+  if (!Number.isFinite(fraction)) return start;
   const clamped = Math.min(Math.max(fraction, 0), 1);
   return start + clamped * (end - start);
 }
