@@ -125,32 +125,45 @@ describe("SoundEngine", () => {
       expect(ctx.createOscillator).not.toHaveBeenCalled();
     });
 
-    it("does not retrigger a new oscillator within 60ms of the previous SFX", () => {
+    it("does not retrigger the same SFX within 60ms", () => {
       vi.useFakeTimers();
       try {
         const { oscillators } = stubWindowWithAudioContext();
         const engine = new SoundEngine();
         engine.hover();
         vi.advanceTimersByTime(30);
-        engine.choice();
+        engine.hover();
         expect(oscillators).toHaveLength(1);
       } finally {
         vi.useRealTimers();
       }
     });
 
-    it("allows a new SFX once the 60ms throttle window has elapsed", () => {
+    it("allows the same SFX again once the 60ms throttle window has elapsed", () => {
       vi.useFakeTimers();
       try {
         const { oscillators } = stubWindowWithAudioContext();
         const engine = new SoundEngine();
         engine.hover();
         vi.advanceTimersByTime(61);
-        engine.choice();
+        engine.hover();
         expect(oscillators).toHaveLength(2);
       } finally {
         vi.useRealTimers();
       }
+    });
+
+    // main.ts's choice-button handler calls sound.choice() and then
+    // controller.choose(), which dispatches "branch" synchronously — so
+    // branchLit() lands in the same millisecond as choice(). Throttling
+    // across different SFX would silence the branch sweep entirely.
+    it("lets a different SFX play inside another's throttle window", () => {
+      const { oscillators } = stubWindowWithAudioContext();
+      const engine = new SoundEngine();
+      engine.choice();
+      engine.branchLit();
+      expect(oscillators).toHaveLength(2);
+      expect(oscillators[1].frequency.linearRampToValueAtTime).toHaveBeenCalledWith(880, 0.15);
     });
 
     it("hover plays a single quiet high tick", () => {
