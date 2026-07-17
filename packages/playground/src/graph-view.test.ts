@@ -52,7 +52,7 @@ describe("GraphView", () => {
   it("marks nodes with no choices as terminal", () => {
     const view = new GraphView(makeSvg(), graph);
     const svg = (view as unknown as { svg: SVGSVGElement }).svg;
-    const terminalIds = [...svg.querySelectorAll(".graph-view__node--terminal")].map(
+    const terminalIds = Array.from(svg.querySelectorAll(".graph-view__node--terminal")).map(
       (el) => el.querySelector(".graph-view__node-label")?.textContent,
     );
     expect(terminalIds.sort()).toEqual(["left", "right"]);
@@ -63,7 +63,7 @@ describe("GraphView", () => {
     const view = new GraphView(svg, graph);
     view.highlightPath(["intro", "left"]);
 
-    const visited = [...svg.querySelectorAll(".graph-view__node.is-visited")].map(
+    const visited = Array.from(svg.querySelectorAll(".graph-view__node.is-visited")).map(
       (el) => el.querySelector(".graph-view__node-label")?.textContent,
     );
     expect(visited).toEqual(["intro", "left"]);
