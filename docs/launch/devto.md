@@ -49,7 +49,7 @@ with a `currentTime` they set by hand, then dispatch `timeupdate` and assert on 
 The full sequence, node loads, preload starts, timeupdate crosses the end timecode, choice event
 fires, jump-cut swaps the src, is covered in plain Node with no jsdom and no media stack. Naming
 the four properties I actually needed, instead of depending on the 80-member interface they came
-from, is the highest-leverage thing in the codebase.
+from, bought more than any other decision in the codebase.
 
 ## The cut has to be synchronous
 
