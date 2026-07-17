@@ -111,6 +111,7 @@ export class PlayerController extends EventTarget {
    */
   reset(autoplay = false): void {
     this.awaitingChoice = false;
+    this.host.pause();
     for (const preloadHost of this.preloaded.values()) {
       preloadHost.pause();
     }
