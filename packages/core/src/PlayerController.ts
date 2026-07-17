@@ -42,7 +42,7 @@ export class PlayerController extends EventTarget {
   private readonly host: VideoHost;
   private readonly createPreloadHost: () => VideoHost;
   private readonly preloaded = new Map<string, VideoHost>();
-  private awaitingChoice = false;
+  private nodeEndHandled = false;
 
   private readonly onTimeUpdate = () => this.checkForNodeEnd();
   private readonly onEnded = () => this.handleNodeEnd();
@@ -86,7 +86,7 @@ export class PlayerController extends EventTarget {
    */
   choose(choiceId: string): BranchNode {
     const target = this.machine.choose(choiceId);
-    this.awaitingChoice = false;
+    this.nodeEndHandled = false;
     this.preloaded.get(target.id)?.pause();
     this.preloaded.delete(target.id);
 
@@ -110,7 +110,7 @@ export class PlayerController extends EventTarget {
    * released and the start node's choice targets begin preloading again.
    */
   reset(autoplay = false): void {
-    this.awaitingChoice = false;
+    this.nodeEndHandled = false;
     this.host.pause();
     for (const preloadHost of this.preloaded.values()) {
       preloadHost.pause();
@@ -171,7 +171,7 @@ export class PlayerController extends EventTarget {
   }
 
   private checkForNodeEnd(): void {
-    if (this.awaitingChoice) return;
+    if (this.nodeEndHandled) return;
     const node = this.machine.current;
     if (node.end !== undefined && this.host.currentTime >= node.end) {
       this.handleNodeEnd();
@@ -179,7 +179,8 @@ export class PlayerController extends EventTarget {
   }
 
   private handleNodeEnd(): void {
-    if (this.awaitingChoice) return;
+    if (this.nodeEndHandled) return;
+    this.nodeEndHandled = true;
     this.host.pause();
 
     if (this.machine.isTerminal()) {
@@ -189,7 +190,6 @@ export class PlayerController extends EventTarget {
       return;
     }
 
-    this.awaitingChoice = true;
     this.dispatchEvent(
       new CustomEvent("choice", { detail: { choices: this.machine.choices() } }),
     );
