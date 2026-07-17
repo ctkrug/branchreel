@@ -164,6 +164,34 @@ describe("PlayerController", () => {
     expect(second.controller.history).toEqual(["intro", "ending-safe"]);
   });
 
+  it("handles a choice that targets its own node (self-loop) without leaking preload hosts", () => {
+    const graph: BranchGraph = {
+      start: "loop",
+      nodes: [
+        {
+          id: "loop",
+          src: "loop.mp4",
+          end: 5,
+          choices: [{ id: "again", label: "Listen again", target: "loop" }],
+        },
+      ],
+    };
+    const { host, controller, preloadHosts } = makeController(graph);
+
+    host.currentTime = 5;
+    host.fireEvent("timeupdate");
+    const target = controller.choose("again");
+
+    expect(target.id).toBe("loop");
+    expect(host.src).toBe("loop.mp4");
+    expect(host.played).toBe(true);
+    expect(controller.history).toEqual(["loop", "loop"]);
+    // One preload host from the initial load, one from re-preloading after
+    // the self-loop choice — neither should have piled up or leaked.
+    expect(preloadHosts).toHaveLength(2);
+    expect(preloadHosts.every((h) => !h.played)).toBe(true);
+  });
+
   it("emits end and never choice for a terminal node", () => {
     const graph = makeGraph();
     const { host, controller } = makeController(graph);
