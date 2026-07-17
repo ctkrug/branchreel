@@ -16,7 +16,7 @@ packages/
       GraphLayout.ts       computeGraphLayout — pure BFS layout for the graph view
       index.ts             public exports
     test/                  vitest, one file per module above
-  playground/             "branchreel-playground" — the live demo app (Vite)
+  playground/             "branchreel-playground" — the live demo app AND the public page
     src/
       story.ts             the sample story ("The Signal") + its placeholder video imports
       media/                ffmpeg-generated placeholder clips + regeneration instructions
@@ -27,7 +27,7 @@ packages/
                              (tested against a fake AudioContext)
       format.ts               pure scrubber/time-formatting helpers (tested)
       style.css                docs/DESIGN.md tokens + layout, implemented
-    index.html               page shell
+    index.html               page shell: the demo above the fold, the pitch/FAQ/CTA below it
 ```
 
 ## Data flow
@@ -50,7 +50,11 @@ packages/
    a `FakeVideoHost` to drive the same event sequence a real `<video>` would, without jsdom).
 4. **`computeGraphLayout`** takes a `BranchGraph` and returns node positions (BFS-depth columns)
    and edges — pure, no rendering. `GraphView` (playground) turns that into an SVG and calls
-   `highlightPath(history)` on every `branch` event to keep the traversed path amber.
+   `highlightPath(history)` on every `branch` event to keep the traversed path amber. The layout
+   runs depth along x; `GraphView` transposes it so depth reads *downward*, because the panel it
+   draws into is portrait (a column beside the video, a drawer on phone) and a left-to-right
+   diagram has to scale itself into illegibility to fit. Consumers drawing into a landscape box
+   can use the layout's axes as-is.
 5. **`main.ts`** is the only place these are wired together for the demo: it owns a single
    `PlayerController` instance for the page's lifetime (restarted in place via `reset()`, not
    recreated), drives the scrubber off a `requestAnimationFrame` loop against the current
