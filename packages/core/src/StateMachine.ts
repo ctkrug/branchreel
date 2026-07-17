@@ -33,7 +33,15 @@ export class BranchStateMachine {
     }
 
     for (const node of graph.nodes) {
+      const choiceIds = new Set<string>();
       for (const choice of node.choices ?? []) {
+        if (choiceIds.has(choice.id)) {
+          throw new Error(
+            `BranchStateMachine: duplicate choice id "${choice.id}" on node "${node.id}"`,
+          );
+        }
+        choiceIds.add(choice.id);
+
         if (!this.nodesById.has(choice.target)) {
           throw new Error(
             `BranchStateMachine: choice "${choice.id}" on node "${node.id}" ` +
