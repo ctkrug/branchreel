@@ -49,11 +49,11 @@ packages/
 4. **`computeGraphLayout`** takes a `BranchGraph` and returns node positions (BFS-depth columns)
    and edges — pure, no rendering. `GraphView` (playground) turns that into an SVG and calls
    `highlightPath(history)` on every `branch` event to keep the traversed path amber.
-5. **`main.ts`** is the only place these are wired together for the demo: it owns the single
-   `PlayerController` instance (recreated via `dispose()` + `new` on restart, since the state
-   machine has no reset), drives the scrubber off a `requestAnimationFrame` loop against the
-   current segment's bounds, and forwards `choice`/`branch`/`end` events to the overlays,
-   `GraphView`, and `SoundEngine`.
+5. **`main.ts`** is the only place these are wired together for the demo: it owns a single
+   `PlayerController` instance for the page's lifetime (restarted in place via `reset()`, not
+   recreated), drives the scrubber off a `requestAnimationFrame` loop against the current
+   segment's bounds, and forwards `choice`/`branch`/`end` events to the overlays, `GraphView`,
+   and `SoundEngine`.
 
 ## Why VideoHost instead of HTMLVideoElement directly
 
