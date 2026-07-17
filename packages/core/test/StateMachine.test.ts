@@ -79,6 +79,20 @@ describe("BranchStateMachine", () => {
     );
   });
 
+  it("throws at construction on duplicate choice ids within a node", () => {
+    const graph = makeGraph();
+    graph.nodes[0].choices!.push({ id: "brave", label: "Also open", target: "ending-safe" });
+    expect(() => new BranchStateMachine(graph)).toThrow(
+      /duplicate choice id "brave" on node "intro"/,
+    );
+  });
+
+  it("allows the same choice id to repeat on different nodes", () => {
+    const graph = makeGraph();
+    graph.nodes[1].choices = [{ id: "brave", label: "Keep going", target: "ending-twist" }];
+    expect(() => new BranchStateMachine(graph)).not.toThrow();
+  });
+
   it("throws at construction on duplicate node ids", () => {
     const graph = makeGraph();
     graph.nodes.push({ id: "intro", src: "duplicate.mp4" });
