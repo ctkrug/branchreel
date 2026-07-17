@@ -64,6 +64,12 @@ describe("segmentProgress", () => {
   it("returns 0 for an inverted (end <= start) segment", () => {
     expect(segmentProgress(5, 10, 2)).toBe(0);
   });
+
+  it("returns 0 instead of NaN when currentTime is non-finite", () => {
+    expect(segmentProgress(NaN, 0, 10)).toBe(0);
+    expect(segmentProgress(Infinity, 0, 10)).toBe(0);
+    expect(segmentProgress(-Infinity, 0, 10)).toBe(0);
+  });
 });
 
 describe("segmentTimeAt", () => {
@@ -78,5 +84,11 @@ describe("segmentTimeAt", () => {
 
   it("handles a non-zero start offset", () => {
     expect(segmentTimeAt(0.5, 4, 8)).toBe(6);
+  });
+
+  it("treats a non-finite fraction as 0 instead of producing NaN", () => {
+    expect(segmentTimeAt(NaN, 0, 10)).toBe(0);
+    expect(segmentTimeAt(Infinity, 0, 10)).toBe(0);
+    expect(segmentTimeAt(-Infinity, 0, 10)).toBe(0);
   });
 });
