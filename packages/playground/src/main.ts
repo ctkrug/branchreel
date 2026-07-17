@@ -137,14 +137,12 @@ function wireController(controller: PlayerController): void {
 
 // --- lifecycle -----------------------------------------------------------
 
-let activeController: PlayerController = new PlayerController(video, story);
+const activeController: PlayerController = new PlayerController(video, story);
 wireController(activeController);
 graphView.highlightPath(activeController.history);
 
 function playFromStart(): void {
-  activeController.dispose();
-  activeController = new PlayerController(video, story);
-  wireController(activeController);
+  activeController.reset();
   graphView.highlightPath(activeController.history);
   choiceOverlay.hidden = true;
   endOverlay.hidden = true;
