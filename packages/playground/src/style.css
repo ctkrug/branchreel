@@ -511,8 +511,8 @@ body {
   }
 
   .player__frame {
-    aspect-ratio: auto;
-    height: 60vh;
+    aspect-ratio: 16 / 9;
+    max-height: 60vh;
   }
 
   .graph-toggle {
