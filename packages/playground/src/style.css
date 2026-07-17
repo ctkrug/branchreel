@@ -264,8 +264,8 @@ body {
   gap: var(--space-2);
   padding: var(--space-3);
   text-align: center;
-  background: linear-gradient(180deg, rgba(11, 18, 32, 0.78) 0%, rgba(11, 18, 32, 0.94) 100%);
-  backdrop-filter: blur(8px);
+  background: linear-gradient(180deg, rgba(11, 18, 32, 0.92) 0%, rgba(11, 18, 32, 0.98) 100%);
+  backdrop-filter: blur(20px);
   animation: overlay-in var(--ease-ui);
 }
 
