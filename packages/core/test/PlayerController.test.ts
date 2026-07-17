@@ -217,6 +217,27 @@ describe("PlayerController", () => {
     expect(onEnd).toHaveBeenCalledTimes(1);
   });
 
+  it("does not double-fire end when a terminal node's end timecode coincides with the native ended event", () => {
+    // A terminal node whose `end` matches the clip's actual duration can
+    // have both the timeupdate-crossing-end check and the native `ended`
+    // event race to call handleNodeEnd for the same node.
+    const graph: BranchGraph = {
+      start: "intro",
+      nodes: [
+        { id: "intro", src: "intro.mp4", end: 3, choices: [] },
+      ],
+    };
+    const { host, controller } = makeController(graph);
+    const onEnd = vi.fn();
+    controller.addEventListener("end", onEnd);
+
+    host.currentTime = 3;
+    host.fireEvent("timeupdate");
+    host.fireEvent("ended");
+
+    expect(onEnd).toHaveBeenCalledTimes(1);
+  });
+
   it("still switches src when a preload host errors instead of throwing", () => {
     const graph = makeGraph();
     const { host, controller, preloadHosts } = makeController(graph);
