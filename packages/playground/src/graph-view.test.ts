@@ -23,6 +23,17 @@ function makeSvg(): SVGSVGElement {
   return document.createElementNS("http://www.w3.org/2000/svg", "svg");
 }
 
+/** Top-left corner of a node group, read back off its `transform`. */
+function nodeAt(svg: SVGSVGElement, id: string): { x: number; y: number } {
+  const group = Array.from(svg.querySelectorAll(".graph-view__node")).find(
+    (el) => el.querySelector(".graph-view__node-label")?.textContent === id,
+  );
+  const transform = group?.getAttribute("transform") ?? "";
+  const match = /translate\(([-\d.]+),\s*([-\d.]+)\)/.exec(transform);
+  if (!match) throw new Error(`no positioned node "${id}"`);
+  return { x: Number(match[1]), y: Number(match[2]) };
+}
+
 describe("GraphView", () => {
   beforeEach(() => {
     // jsdom implements neither matchMedia nor SVGPathElement.getTotalLength;
@@ -47,6 +58,23 @@ describe("GraphView", () => {
     const view = new GraphView(makeSvg(), graph);
     const svg = (view as unknown as { svg: SVGSVGElement }).svg;
     expect(svg.querySelectorAll(".graph-view__edge")).toHaveLength(2);
+  });
+
+  // The graph panel is portrait (a tall column beside the video, and a
+  // collapsible drawer on phone), so the diagram flows depth downward
+  // rather than across; a left-to-right diagram scales down to fit the
+  // panel's width and leaves the labels unreadable.
+  it("flows depth down the panel and spreads siblings across it", () => {
+    const svg = makeSvg();
+    new GraphView(svg, graph);
+    const intro = nodeAt(svg, "intro");
+    const left = nodeAt(svg, "left");
+    const right = nodeAt(svg, "right");
+
+    expect(left.y).toBeGreaterThan(intro.y);
+    expect(right.y).toBeGreaterThan(intro.y);
+    expect(left.y).toBe(right.y);
+    expect(left.x).not.toBe(right.x);
   });
 
   it("marks nodes with no choices as terminal", () => {
