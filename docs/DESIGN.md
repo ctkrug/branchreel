@@ -53,10 +53,20 @@ layered shadow (`0 1px 2px rgba(0,0,0,0.4), 0 4px 12px rgba(0,0,0,0.3)`) for dep
 
 **The hero is the video player + choice overlay.** On desktop (1440×900) it occupies the
 left/majority ~65% of the viewport at full height; the graph view sits alongside on the right
-as a persistent panel (not a modal), so the viewer can see the story shape update live as they
-choose. On phone (390×844) the video stacks on top at full width (~60vh) with the graph view
-below it, collapsible via a tab so it never fights the video for space, and the choice overlay
-remains full-width and thumb-reachable.
+as a persistent 380px panel (not a modal), so the viewer can see the story shape update live as
+they choose. The panel is sized so the diagram draws at close to 1:1 — squeeze it narrower and
+the whole graph scales down until the node ids stop being readable.
+
+On phone (390×844) the video stacks on top at full width and the graph view sits below it, open
+by default and collapsible via a tab. **The video keeps its native 16:9 rather than filling
+~60vh:** at 390px wide that is only ~200px tall, and stretching the frame to 60vh would crop a
+16:9 segment down to a portrait box, cutting the sides off the picture. The graph view takes the
+height the video doesn't need (~45vh), so the column still fills the screen instead of trailing
+off into empty background, and the choice overlay stays full-width and thumb-reachable.
+
+The overlays live inside the video frame, so at phone sizes they have ~200px to work with: their
+type and spacing step down to fit rather than overflowing the frame and clipping their own
+buttons.
 
 No dead space: the background carries a faint grid/graph-paper texture (see signature detail)
 so empty regions still read as "designed," not blank.
