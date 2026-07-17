@@ -91,6 +91,60 @@ describe("computeGraphLayout", () => {
     expect(layout.height).toBe(0);
   });
 
+  // Simple deterministic LCG so property runs are reproducible across CI runs.
+  function makeRng(seed: number): () => number {
+    let state = seed;
+    return () => {
+      state = (state * 1103515245 + 12345) & 0x7fffffff;
+      return state / 0x7fffffff;
+    };
+  }
+
+  function randomDag(rng: () => number, nodeCount: number): BranchGraph {
+    const nodes = Array.from({ length: nodeCount }, (_, i) => ({
+      id: `n${i}`,
+      src: `n${i}.mp4`,
+      choices: [] as { id: string; label: string; target: string }[],
+    }));
+    // Every edge points from a lower index to a higher one, guaranteeing a DAG.
+    for (let i = 0; i < nodeCount; i++) {
+      const edgeCount = Math.floor(rng() * 3);
+      for (let e = 0; e < edgeCount; e++) {
+        const targetIndex = i + 1 + Math.floor(rng() * Math.max(1, nodeCount - i - 1));
+        if (targetIndex >= nodeCount) continue;
+        const choiceId = `c${i}-${targetIndex}-${e}`;
+        if (nodes[i].choices.some((c) => c.target === `n${targetIndex}`)) continue;
+        nodes[i].choices.push({ id: choiceId, label: choiceId, target: `n${targetIndex}` });
+      }
+    }
+    return { start: "n0", nodes };
+  }
+
+  it("property: never overlaps two nodes for any random DAG", () => {
+    const rng = makeRng(42);
+    for (let trial = 0; trial < 50; trial++) {
+      const graph = randomDag(rng, 3 + Math.floor(rng() * 15));
+      const layout = computeGraphLayout(graph);
+      const seen = new Set<string>();
+      for (const node of layout.nodes) {
+        const key = `${node.x},${node.y}`;
+        expect(seen.has(key)).toBe(false);
+        seen.add(key);
+      }
+    }
+  });
+
+  it("property: every node in the graph gets exactly one layout position", () => {
+    const rng = makeRng(1337);
+    for (let trial = 0; trial < 50; trial++) {
+      const graph = randomDag(rng, 3 + Math.floor(rng() * 15));
+      const layout = computeGraphLayout(graph);
+      expect(layout.nodes.map((n) => n.id).sort()).toEqual(
+        graph.nodes.map((n) => n.id).sort(),
+      );
+    }
+  });
+
   it("does not re-position a node reached again via a back edge", () => {
     const graph: BranchGraph = {
       start: "a",
