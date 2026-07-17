@@ -420,8 +420,13 @@ a.button {
   height: 4px;
   border-radius: 2px;
   background: var(--surface-2);
-  outline: none;
   cursor: pointer;
+}
+
+/* The track is only 4px tall, so the ring needs room to read as one. */
+.scrubber__input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 6px;
 }
 
 .scrubber__input::-webkit-slider-thumb {
