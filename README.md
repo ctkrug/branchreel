@@ -1,30 +1,42 @@
 # Branchreel
 
-A tiny, dependency-light JavaScript/TypeScript library for **branching interactive video**.
-Drop in a video file and a state-machine JSON describing your story graph, and Branchreel
-gives you click-to-branch playback — no proprietary video format, no hosted platform, no
-backend required.
+**▶ Live demo: [apps.charliekrug.com/branchreel](https://apps.charliekrug.com/branchreel/)**
+
+[![CI](https://github.com/ctkrug/branchreel/actions/workflows/ci.yml/badge.svg)](https://github.com/ctkrug/branchreel/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+Branching video on a page you control. Describe a story as a JSON graph, hand Branchreel a
+`<video>` element, and viewers click to choose what happens next. No proprietary format, no
+hosted platform, no backend.
+
+![A playthrough of the demo story: each choice cuts straight to the next segment while the story graph lights up the path taken so far](docs/media/demo.gif)
 
 ## Why
 
-Interactive video today usually means adopting someone else's authoring platform and file
-format, or standing up custom backend infrastructure just to track "what happened next."
-Branchreel is the opposite bet: it's a small library you drop into a page you already
-control. The story graph is plain JSON, the video is a plain `<video>` element, and the
-branching logic runs entirely in the browser.
+Interactive video usually comes down to two trades you may not want to make. Adopt a hosted
+platform and the story lives in someone else's editor, someone else's file format, and someone
+else's player, on their pricing. Build it yourself and you are hand-rolling source swapping,
+choice overlays, preloading, and a scrubber that understands branches, once per project.
 
-## What it does
+Branchreel is the small third option: a library you drop into a page you already own. The graph
+is plain JSON you can write by hand, the media is a plain video file, and every decision runs in
+the browser.
 
-- **State machine playback** — define nodes (video segments) and the choices that connect
-  them; Branchreel drives an HTML `<video>` element through the graph.
-- **Click-to-branch** — a choice prompt overlays the video at the right moment; picking one
-  jump-cuts playback to the next segment with no reload and no buffering stutter.
-- **Preload strategy** — upcoming branch targets are prefetched ahead of a decision point so
-  the cut feels instant.
-- **Non-linear scrubber** — a timeline control that understands branch structure instead of
-  pretending the story is one continuous line.
-- **Graph view** — a built-in visualization of the whole story shape, lighting up the path
-  the viewer actually took.
+## What you get
+
+- **A story is a state machine.** Nodes are video segments, choices are the edges between them.
+  `BranchStateMachine` owns traversal and nothing else, so it runs fine with no DOM at all.
+- **The cut does not stall.** Every choice target starts preloading as soon as its node begins
+  playing, and `choose()` sets the host's `src` synchronously, so nothing is awaited between the
+  click and the new frame.
+- **Bad graphs fail at construction.** A duplicate node id, or a choice pointing at a node that
+  is not in the graph, throws when you build the machine rather than three clicks into a
+  playthrough.
+- **A scrubber that tells the truth.** A branching story is not one timeline, so position is
+  reported within the current segment instead of pretending the whole graph is a straight line.
+- **Layout for the story graph.** `computeGraphLayout` returns node positions and edges; you draw
+  them however you like. The demo renders SVG, the library has no opinion.
+- **Zero runtime dependencies**, ESM and CJS builds, and TypeScript types in the package.
 
 ## Install
 
@@ -34,8 +46,8 @@ npm install branchreel
 
 ## Usage
 
-Describe your story as a `BranchGraph` — plain JSON, no authoring tool required — then hand a
-`<video>` element and the graph to `PlayerController`:
+Describe your story as a `BranchGraph`, then hand a `<video>` element and the graph to
+`PlayerController`:
 
 ```ts
 import { PlayerController, type BranchGraph } from "branchreel";
@@ -67,7 +79,7 @@ player.addEventListener("choice", (event) => {
 
 player.addEventListener("branch", (event) => {
   const { node, history } = (event as CustomEvent).detail;
-  // jump-cut already happened — video.src is node.src; update your UI/graph view
+  // the cut already happened: video.src is node.src. Update your UI here.
 });
 
 player.addEventListener("end", (event) => {
@@ -76,18 +88,18 @@ player.addEventListener("end", (event) => {
 });
 ```
 
-`PlayerController` preloads every reachable choice target as soon as its node starts playing,
-so `choose()` never stalls on a network request — if a preload fails, it silently falls back to
-a normal load instead of throwing.
+`PlayerController` preloads every reachable choice target as soon as its node starts playing, so
+`choose()` does not wait on the network. If a preload fails, choosing that branch still works
+through a normal load instead of throwing.
 
-Call `player.reset()` to return to the graph's start node and clear history — useful for a
-"play again" button. It reuses the same host and listeners, so you don't need to reconstruct
-the controller; pass `true` to start playing immediately (`player.reset(true)`).
+Call `player.reset()` to return to the start node and clear history, which is what a "play again"
+button wants. It reuses the same host and listeners, so there is no need to rebuild the
+controller. Pass `true` to start playing straight away (`player.reset(true)`).
 
 ### Rendering the story graph
 
-`computeGraphLayout` turns a `BranchGraph` into node positions and edges you can draw yourself
-(SVG, canvas, whatever fits your app):
+`computeGraphLayout` turns a `BranchGraph` into node positions and edges you can draw yourself in
+SVG, canvas, or anything else. Each node's column is its shortest-path distance from `start`:
 
 ```ts
 import { computeGraphLayout } from "branchreel";
@@ -95,12 +107,13 @@ import { computeGraphLayout } from "branchreel";
 const layout = computeGraphLayout(graph);
 // layout.nodes: { id, x, y }[]
 // layout.edges: { from, to, choiceId, label }[]
+// layout.width / layout.height: the canvas size needed to draw it
 ```
 
 ### Using the state machine directly
 
-`PlayerController` is built on `BranchStateMachine`, which you can use standalone if you're
-driving playback yourself (e.g. no `<video>` element, or a non-browser environment):
+`PlayerController` is built on `BranchStateMachine`, which stands alone if you are driving
+playback yourself (no `<video>` element, or no browser at all):
 
 ```ts
 import { BranchStateMachine } from "branchreel";
@@ -111,8 +124,8 @@ machine.choose("brave"); // moves to "hallway", returns the new BranchNode
 machine.history; // ["intro", "hallway"]
 ```
 
-Construction validates the graph up front — a duplicate node id or a choice targeting an
-unknown node throws immediately, rather than failing later on `choose()`.
+Construction validates the graph up front, so a duplicate node id or a choice targeting an
+unknown node throws immediately rather than failing later on `choose()`.
 
 ## Graph JSON shape
 
@@ -124,33 +137,36 @@ unknown node throws immediately, rather than failing later on `choose()`.
 | `node.src` | `string` | Video source URL for this segment |
 | `node.start?` | `number` | Start offset in seconds (default 0) |
 | `node.end?` | `number` | End offset in seconds; omit to play to the media's natural end |
-| `node.choices?` | `BranchChoice[]` | Omit/empty for a terminal node |
+| `node.choices?` | `BranchChoice[]` | Omit or leave empty for a terminal node |
 | `choice.id` | `string` | Unique within the node's `choices` |
 | `choice.label` | `string` | Text shown on the choice prompt |
 | `choice.target` | `string` | Id of the node this choice leads to |
 
-## Stack
+## The demo story
 
-- **TypeScript**, published as a small npm package with ESM + CJS builds and bundled types.
-- **Vitest** for unit tests.
-- A **Vite-powered playground** demo app (`packages/playground`) that consumes the library like
-  any real integrator would, used both for local development and as the live public demo.
+`packages/playground` plays "The Signal": three branch points, four endings, eight segments. It
+consumes the library exactly the way any integrator would, so it works as a full worked example
+alongside the docs. The clips it ships are 3-second ffmpeg-generated placeholder cards (see
+[`packages/playground/src/media/README.md`](packages/playground/src/media/README.md)); point each
+node's `src` at real footage and nothing else in the app changes.
 
 ## Development
 
 ```sh
 npm install
-npm run build       # builds the library, then typechecks the playground against it
-npm run test         # runs both packages' test suites
+npm run build   # builds the library, then typechecks the playground against it
+npm run test    # runs both packages' test suites
 npm run --workspace=branchreel-playground dev   # live playground at localhost
 ```
 
-## Status
-
-The core state machine, playback controller, graph layout, and a full playground demo
-("The Signal") are built and working end to end — see [`docs/BACKLOG.md`](docs/BACKLOG.md) for
-what's shipped vs. still open, and [`docs/VISION.md`](docs/VISION.md) for the overall plan.
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) maps the codebase,
+[`docs/VISION.md`](docs/VISION.md) covers why it exists, and
+[`docs/DESIGN.md`](docs/DESIGN.md) is the demo's art direction.
 
 ## License
 
-MIT — see [`LICENSE`](LICENSE).
+MIT, see [`LICENSE`](LICENSE).
+
+---
+
+More of Charlie's projects: [apps.charliekrug.com](https://apps.charliekrug.com)
