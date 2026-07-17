@@ -7,8 +7,9 @@ import type { BranchChoice, BranchGraph, BranchNode } from "./types.js";
  */
 export class BranchStateMachine {
   private readonly nodesById: Map<string, BranchNode>;
+  private readonly startId: string;
   private currentId: string;
-  private readonly path: string[];
+  private path: string[];
 
   constructor(graph: BranchGraph) {
     if (graph.nodes.length === 0) {
@@ -42,6 +43,7 @@ export class BranchStateMachine {
       }
     }
 
+    this.startId = graph.start;
     this.currentId = graph.start;
     this.path = [graph.start];
   }
@@ -94,5 +96,11 @@ export class BranchStateMachine {
     this.currentId = target.id;
     this.path.push(target.id);
     return target;
+  }
+
+  /** Returns to the graph's start node and clears history back to it. */
+  reset(): void {
+    this.currentId = this.startId;
+    this.path = [this.startId];
   }
 }
